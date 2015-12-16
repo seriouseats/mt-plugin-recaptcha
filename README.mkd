@@ -1,3 +1,5 @@
+This is a fork of [mt-plugin-recaptcha](https://github.com/movabletype/mt-plugin-recaptcha) that has been modified to work with reCAPTCHA 2.0
+
 # reCaptcha, a plugin for Movable Type
 
 * Authors: Six Apart
