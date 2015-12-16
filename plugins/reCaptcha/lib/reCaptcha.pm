@@ -37,31 +37,7 @@ sub form_fields {
     return q() unless $publickey && $privatekey;
 
     return <<FORM_FIELD;
-<div id="recaptcha_script" style="display:block">
-<script type="text/javascript"
-   src="//www.google.com/recaptcha/api/challenge?k=$publickey">
-</script>
-
-<noscript>
-   <iframe src="//www.google.com/recaptcha/api/noscript?k=$publickey"
-       height="300" width="500" frameborder="0"></iframe><br>
-   <textarea name="recaptcha_challenge_field" rows="3" cols="40">
-   </textarea>
-   <input type="hidden" name="recaptcha_response_field"
-       value="manual_challenge">
-</noscript>
-</div>
-<script type="text/javascript">
-if ( typeof(mtCaptchaVisible) != "undefined" )
-    mtCaptchaVisible = true;
-else if ( typeof(commenter_name) != "undefined" ) {
-    var div = document.getElementById("recaptcha_script");
-    if (commenter_name)
-        div.style.display = "none";
-    else
-        div.style.display = "block";
-}
-</script>
+<div class="g-recaptcha" data-sitekey="$publickey"></div>
 FORM_FIELD
 }
 
@@ -81,18 +57,15 @@ sub validate_captcha {
     my $config = MT::Plugin::reCaptcha->instance->get_config_hash("blog:$blog_id");
     my $privatekey = $config->{recaptcha_privatekey};
 
-    my $challenge = $app->param('recaptcha_challenge_field');
-    my $response = $app->param('recaptcha_response_field');
+    my $response = $app->param('g-recaptcha-response');
     my $ua = $app->new_ua({ timeout => 15, max_size => undef });
     return 0 unless $ua;
 
     require HTTP::Request;
-    my $req = HTTP::Request->new(POST => 'http://www.google.com/recaptcha/api/verify');
+    my $req = HTTP::Request->new(POST => 'https://www.google.com/recaptcha/api/siteverify');
     $req->content_type("application/x-www-form-urlencoded");
     require MT::Util;
-    my $content = 'privatekey=' . MT::Util::encode_url($privatekey);
-    $content .= '&remoteip=' . MT::Util::encode_url($app->remote_ip);
-    $content .= '&challenge=' . MT::Util::encode_url($challenge);
+    my $content = 'secret=' . MT::Util::encode_url($privatekey);
     $content .= '&response=' . MT::Util::encode_url($response);
     $req->content($content);
     debuglog("sending verification request: '$content'");
@@ -100,16 +73,13 @@ sub validate_captcha {
     my $res = $ua->request($req);
     my $c = $res->content;
 
-    if (substr($res->code, 0, 1) eq '2') {
-        if ($c =~ /^true\n/) {
-            debuglog("submitted code is valid: '$c'");
-            return 1;
-        }
-        debuglog("submitted code is not valid: '$c'");
-    } else {
-        debuglog("verification failed: response code: '" . $res->code . "', content: '$c'");
-    }
-
+    if ($c =~ /true/)
+    {
+      debuglog("submitted code is valid: '$c'");
+      return 1;
+    }   
+    
+    debuglog("submitted code is not valid: '$s'");
     return 0;
 }
 
