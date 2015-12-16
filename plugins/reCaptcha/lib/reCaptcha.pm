@@ -79,7 +79,7 @@ sub validate_captcha {
       return 1;
     }   
     
-    debuglog("submitted code is not valid: '$s'");
+    debuglog("submitted code is not valid: '$c'");
     return 0;
 }
 
