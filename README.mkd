@@ -40,6 +40,27 @@ Captcha plugin powered by reCaptcha: <http://recaptcha.net/>.
 * Edit the template containing the commenting form. *In the default templates
   this is th "Comment Form" template.*
 
+
+### Required JavaScript
+
+Every template using reCAPTCHA 2.0 must include the following tag immediately before `</head>`:
+
+```
+<script src='https://www.google.com/recaptcha/api.js'></script>
+```
+
+### User Registration
+
+To display the CAPTCHA on during the user registration process include the snippet below somewhere in your `<form>` (It may already be there).
+
+```
+<mt:if name="captcha_fields">
+  <div class="setting"><mt:var name="captcha_fields"></div>
+</mt:if>
+```
+
+### Comment System
+
 Look for one of the following blocks of code (from default templates in MT4.0x and MT4.1x):
 
     <mt:If tag="MTCaptchaFields">
